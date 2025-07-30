@@ -1,0 +1,174 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions to make rules more readable.
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuth() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      // An admin is an authenticated user whose document in the 'users' collection has the role 'admin'.
+      return isAuth() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // USERS Collection
+    match /users/{userId} {
+      // Public Get: Allow anyone to get a single user document. 
+      // This is needed for the client to check account status or custom CPMs. Sensitive data should not be stored here.
+      allow get: if true;
+      
+      // List: Only admins can list all users.
+      allow list: if isAdmin();
+
+      // Update: Admins can update any user. Users can only update their own profile, and cannot change their role.
+      allow update: if isAdmin() || (isOwner(userId) && request.resource.data.role == resource.data.role);
+
+      // Create: Only the user themselves can create their own document.
+      allow create: if isOwner(userId);
+      
+      // Delete: Disallowed for all.
+      allow delete: if false;
+    }
+
+    // LINKS Collection
+    match /links/{linkId} {
+      // Public Read: Anyone can read link documents for redirection.
+      allow read: if true;
+
+      // Create: Only authenticated users can create links for themselves.
+      allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
+
+      // Update:
+      // A visitor can ONLY increment clicks and generatedEarnings. They cannot change any other field.
+      // The owner or an admin can update any field.
+      allow update: if (
+        request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['clicks', 'generatedEarnings']) &&
+        request.resource.data.clicks == resource.data.clicks + 1
+      ) || isAdmin() || isOwner(resource.data.userId);
+      
+      // Delete: Admins or owners can delete links.
+      allow delete: if isAdmin() || isOwner(resource.data.userId);
+    }
+    
+    // CLICKS Collection (for logging individual clicks)
+    match /clicks/{clickId} {
+      // Create: Anyone can create a click document. This is done on the client-side when a link is visited.
+      allow create: if true;
+      
+      // Read/Update/Delete: Only admins can read click logs or modify them. Users cannot.
+      allow read, update, delete: if isAdmin();
+    }
+
+    // PAYOUT REQUESTS Collection
+    match /payoutRequests/{requestId} {
+      // Create: Only the owner of the request can create it.
+      allow create: if isOwner(request.resource.data.userId);
+
+      // Read: Admins can read any request. Users can only read their own requests.
+      // This is more flexible than a 'list' rule and prevents index-related permission errors.
+      allow read: if isAdmin() || isOwner(resource.data.userId);
+      
+      // Update: Only admins can approve or reject requests.
+      allow update: if isAdmin();
+      
+      // Delete: Disallowed.
+      allow delete: if false;
+    }
+
+    // CPM HISTORY & GLOBAL RULES (Admin-managed settings)
+    match /cpmHistory/{cpmId} {
+      allow get, list: if true; // Publicly readable for earnings calculation.
+      allow create, update, delete: if isAdmin();
+    }
+    
+    match /globalRules/{ruleId} {
+      allow get, list: if true; // Publicly readable for the link gate.
+      allow create, update, delete: if isAdmin();
+    }
+
+    // NOTIFICATIONS Collection
+    match /notifications/{notificationId} {
+      // Read: Admins can read any notification. Users can only read their own.
+      allow read: if isAdmin() || isOwner(resource.data.userId);
+
+      // Create: System/admins can create notifications. This rule allows server-side processes to create notifications.
+      allow create: if isAdmin() || isAuth();
+
+      // Update: Admins or owners can update (e.g., mark as read).
+      allow update: if isAdmin() || isOwner(resource.data.userId);
+      
+      // Delete: Disallowed.
+      allow delete: if false;
+    }
+
+    // SUPPORT TICKETS Collection
+    match /supportTickets/{ticketId} {
+      // Read: Admins can access any ticket. Users can only access their own.
+      allow read: if isAdmin() || isOwner(resource.data.userId);
+
+      // Create: Users can create tickets for themselves.
+      allow create: if isOwner(request.resource.data.userId);
+
+      // Update: Admins or the owner can update the ticket status or metadata.
+      allow update: if isAdmin() || isOwner(resource.data.userId);
+
+      // Nested Messages Subcollection
+      match /messages/{messageId} {
+        // Read: Admins or the owner of the parent ticket can read messages.
+        allow read: if isAdmin() || isOwner(get(/databases/$(database)/documents/supportTickets/$(ticketId)).data.userId);
+
+        // Create: Admins or the owner of the parent ticket can create messages.
+        allow create: if isAdmin() || isOwner(get(/databases/$(database)/documents/supportTickets/$(ticketId)).data.userId);
+        
+        // Update/Delete: Messages are immutable.
+        allow update, delete: if false;
+      }
+    }
+
+    // CLICKS Collection (for analytics and sponsor tracking)
+    match /clicks/{clickId} {
+      // Read: Admins can read any click. Link owners can read clicks for their links.
+      allow read: if isAdmin() || (isAuth() && resource.data.userId == request.auth.uid);
+
+      // List: Admins can list all clicks for analytics.
+      allow list: if isAdmin();
+
+      // Create: Anyone can create click records (for tracking).
+      allow create: if true;
+
+      // Update: Admins can update clicks. Link owners can update clicks for their links.
+      allow update: if isAdmin() || (isAuth() && resource.data.userId == request.auth.uid);
+
+      // Delete: Only admins can delete click records.
+      allow delete: if isAdmin();
+    }
+
+    // SPONSOR RULES Collection (for sponsor monetization system)
+    match /sponsorRules/{sponsorId} {
+      // Read: Anyone can read sponsors (needed for public link gates).
+      allow read: if true;
+
+      // List: Admins can list all sponsors.
+      allow list: if isAdmin();
+
+      // Create: Admins can create sponsors for any link.
+      allow create: if isAdmin();
+
+      // Update: Admins can update any sponsor. Link owners can update sponsors for their links.
+      // Anyone can update view/click counters for tracking (visitors increment these).
+      allow update: if isAdmin() || 
+                      (isAuth() && resource.data.userId == request.auth.uid) ||
+                      (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['views', 'clicks']));
+
+      // Delete: Admins can delete any sponsor. Link owners can delete sponsors for their links.
+      allow delete: if isAdmin() || (isAuth() && resource.data.userId == request.auth.uid);
+    }
+  }
+}

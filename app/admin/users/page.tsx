@@ -1,3 +1,5 @@
+
+
 /**
  * !! ANTES DE EDITAR ESTE ARCHIVO, REVISA LAS DIRECTRICES EN LOS SIGUIENTES DOCUMENTOS: !!
  * - /README.md
@@ -157,7 +159,7 @@ export default function AdminUsersPage() {
         
         toast({
             title: 'Balance Added',
-            description: Successfully added $${amountToAdd.toFixed(4)} to ${selectedUser.displayName}'s balance.,
+            description: `Successfully added $${amountToAdd.toFixed(4)} to ${selectedUser.displayName}'s balance.`,
         });
         
         setIsAddBalanceDialogOpen(false);
@@ -193,8 +195,8 @@ export default function AdminUsersPage() {
         // Create notification for the user
         const notificationRef = doc(collection(db, 'notifications'));
         const notificationMessage = newCpm !== null 
-            ? Your CPM rate has been updated to $${newCpm.toFixed(4)}!
-            : Your custom CPM rate has been removed. You are now on the global rate.;
+            ? `Your CPM rate has been updated to $${newCpm.toFixed(4)}!`
+            : `Your custom CPM rate has been removed. You are now on the global rate.`;
         
         batch.set(notificationRef, {
             userId: selectedUser.uid,
@@ -209,8 +211,8 @@ export default function AdminUsersPage() {
         toast({
             title: 'Custom CPM Updated',
             description: newCpm === null 
-                ? Removed custom CPM for ${selectedUser.displayName}. They have been notified. 
-                : Set custom CPM for ${selectedUser.displayName} to $${newCpm.toFixed(4)}. They have been notified.,
+                ? `Removed custom CPM for ${selectedUser.displayName}. They have been notified.` 
+                : `Set custom CPM for ${selectedUser.displayName} to $${newCpm.toFixed(4)}. They have been notified.`,
         });
         setIsCustomCpmDialogOpen(false);
     } catch (error) {
@@ -254,11 +256,11 @@ export default function AdminUsersPage() {
         const userDocRef = doc(db, 'users', userToUpdate.uid);
         await updateDoc(userDocRef, { accountStatus: newStatus });
         toast({
-            title: User ${actionText}d,
-            description: ${userToUpdate.displayName}'s account has been ${actionText}d.,
+            title: `User ${actionText}d`,
+            description: `${userToUpdate.displayName}'s account has been ${actionText}d.`,
         });
     } catch (error) {
-        toast({ title: 'Error', description: Could not ${actionText} the user., variant: 'destructive' });
+        toast({ title: 'Error', description: `Could not ${actionText} the user.`, variant: 'destructive' });
     }
   }
 
@@ -356,7 +358,7 @@ export default function AdminUsersPage() {
                                         </div>
                                          <div className="flex items-center gap-2">
                                             <span className="font-medium">Status:</span>
-                                            <Badge variant={u.accountStatus === 'active' ? 'default' : 'destructive'} className={${u.accountStatus === 'active' ? 'bg-green-600' : ''}}>
+                                            <Badge variant={u.accountStatus === 'active' ? 'default' : 'destructive'} className={`${u.accountStatus === 'active' ? 'bg-green-600' : ''}`}>
                                                 {u.accountStatus}
                                             </Badge>
                                         </div>
@@ -391,7 +393,7 @@ export default function AdminUsersPage() {
                                          <Badge variant={u.role === 'admin' ? 'default' : 'secondary'} className={u.role === 'admin' ? 'bg-primary' : ''}>
                                             {u.role}
                                         </Badge>
-                                        <Badge variant={u.accountStatus === 'active' ? 'default' : 'destructive'} className={${u.accountStatus === 'active' ? 'bg-green-600' : ''}}>
+                                        <Badge variant={u.accountStatus === 'active' ? 'default' : 'destructive'} className={`${u.accountStatus === 'active' ? 'bg-green-600' : ''}`}>
                                             {u.accountStatus}
                                         </Badge>
                                     </div>
@@ -548,7 +550,7 @@ export default function AdminUsersPage() {
                             </TableHeader>
                             <TableBody>
                                 {payoutHistory.map((payout) => (
-                                    <TableRow key={${selectedUser?.uid}-${payout.id}}>
+                                    <TableRow key={`${selectedUser?.uid}-${payout.id}`}>
                                         <TableCell>{payout.processedAt ? new Date(payout.processedAt.seconds * 1000).toLocaleString() : 'N/A'}</TableCell>
                                         <TableCell className="font-semibold">${payout.amount.toFixed(4)}</TableCell>
                                         <TableCell>

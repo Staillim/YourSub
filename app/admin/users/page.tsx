@@ -1,5 +1,3 @@
-
-
 /**
  * !! ANTES DE EDITAR ESTE ARCHIVO, REVISA LAS DIRECTRICES EN LOS SIGUIENTES DOCUMENTOS: !!
  * - /README.md
@@ -11,7 +9,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { db } from '@/lib/firebase';
 import { collection, onSnapshot, doc, updateDoc, query, where, getDocs, serverTimestamp, increment, orderBy, writeBatch } from 'firebase/firestore';
 import { useUser } from '@/hooks/use-user';
@@ -27,7 +25,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
-import { MoreVertical, UserX, UserCheck, Eye, Loader2, DollarSign, Link2, Wallet, History, ShieldBan, Pencil } from 'lucide-react';
+import { MoreVertical, UserX, UserCheck, Eye, Loader2, DollarSign, Link2, Wallet, History, ShieldBan, Pencil, Search, X } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
     DropdownMenu,
@@ -68,6 +66,9 @@ export default function AdminUsersPage() {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Filter state
+  const [searchTerm, setSearchTerm] = useState('');
 
   // Dialog States
   const [isAddBalanceDialogOpen, setIsAddBalanceDialogOpen] = useState(false);
@@ -115,6 +116,19 @@ export default function AdminUsersPage() {
     return () => unsubscribe();
   }, []);
 
+  // Filter users based on search term
+  const filteredUsers = useMemo(() => {
+    if (!searchTerm.trim()) {
+      return users;
+    }
+
+    const search = searchTerm.toLowerCase().trim();
+    return users.filter(user => 
+      user.displayName.toLowerCase().includes(search) ||
+      user.email.toLowerCase().includes(search)
+    );
+  }, [users, searchTerm]);
+
   const openAddBalanceDialog = (user: UserProfile) => {
     setSelectedUser(user);
     setBalanceAmount('');
@@ -143,7 +157,7 @@ export default function AdminUsersPage() {
         
         toast({
             title: 'Balance Added',
-            description: `Successfully added $${amountToAdd.toFixed(4)} to ${selectedUser.displayName}'s balance.`,
+            description: Successfully added $${amountToAdd.toFixed(4)} to ${selectedUser.displayName}'s balance.,
         });
         
         setIsAddBalanceDialogOpen(false);
@@ -179,8 +193,8 @@ export default function AdminUsersPage() {
         // Create notification for the user
         const notificationRef = doc(collection(db, 'notifications'));
         const notificationMessage = newCpm !== null 
-            ? `Your CPM rate has been updated to $${newCpm.toFixed(4)}!`
-            : `Your custom CPM rate has been removed. You are now on the global rate.`;
+            ? Your CPM rate has been updated to $${newCpm.toFixed(4)}!
+            : Your custom CPM rate has been removed. You are now on the global rate.;
         
         batch.set(notificationRef, {
             userId: selectedUser.uid,
@@ -195,8 +209,8 @@ export default function AdminUsersPage() {
         toast({
             title: 'Custom CPM Updated',
             description: newCpm === null 
-                ? `Removed custom CPM for ${selectedUser.displayName}. They have been notified.` 
-                : `Set custom CPM for ${selectedUser.displayName} to $${newCpm.toFixed(4)}. They have been notified.`,
+                ? Removed custom CPM for ${selectedUser.displayName}. They have been notified. 
+                : Set custom CPM for ${selectedUser.displayName} to $${newCpm.toFixed(4)}. They have been notified.,
         });
         setIsCustomCpmDialogOpen(false);
     } catch (error) {
@@ -240,11 +254,11 @@ export default function AdminUsersPage() {
         const userDocRef = doc(db, 'users', userToUpdate.uid);
         await updateDoc(userDocRef, { accountStatus: newStatus });
         toast({
-            title: `User ${actionText}d`,
-            description: `${userToUpdate.displayName}'s account has been ${actionText}d.`,
+            title: User ${actionText}d,
+            description: ${userToUpdate.displayName}'s account has been ${actionText}d.,
         });
     } catch (error) {
-        toast({ title: 'Error', description: `Could not ${actionText} the user.`, variant: 'destructive' });
+        toast({ title: 'Error', description: Could not ${actionText} the user., variant: 'destructive' });
     }
   }
 
@@ -289,6 +303,35 @@ export default function AdminUsersPage() {
                 <CardDescription>View and manage all users in the system.</CardDescription>
             </CardHeader>
             <CardContent>
+                {/* Search Filter */}
+                <div className="mb-6 space-y-2">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Buscar por nombre o correo electrónico..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10 pr-10"
+                    />
+                    {searchTerm && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setSearchTerm('')}
+                        className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                  
+                  {searchTerm && (
+                    <p className="text-sm text-muted-foreground">
+                      Mostrando {filteredUsers.length} de {users.length} usuarios
+                    </p>
+                  )}
+                </div>
+
                 <Table>
                     <TableHeader>
                         <TableRow>
@@ -301,7 +344,7 @@ export default function AdminUsersPage() {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {users.map((u) => (
+                        {filteredUsers.map((u) => (
                             <TableRow key={u.uid} className={u.accountStatus === 'suspended' ? 'bg-destructive/10' : ''}>
                                 <TableCell className="font-medium">
                                     <div className="font-semibold">{u.displayName}</div>
@@ -313,7 +356,7 @@ export default function AdminUsersPage() {
                                         </div>
                                          <div className="flex items-center gap-2">
                                             <span className="font-medium">Status:</span>
-                                            <Badge variant={u.accountStatus === 'active' ? 'default' : 'destructive'} className={`${u.accountStatus === 'active' ? 'bg-green-600' : ''}`}>
+                                            <Badge variant={u.accountStatus === 'active' ? 'default' : 'destructive'} className={${u.accountStatus === 'active' ? 'bg-green-600' : ''}}>
                                                 {u.accountStatus}
                                             </Badge>
                                         </div>
@@ -348,7 +391,7 @@ export default function AdminUsersPage() {
                                          <Badge variant={u.role === 'admin' ? 'default' : 'secondary'} className={u.role === 'admin' ? 'bg-primary' : ''}>
                                             {u.role}
                                         </Badge>
-                                        <Badge variant={u.accountStatus === 'active' ? 'default' : 'destructive'} className={`${u.accountStatus === 'active' ? 'bg-green-600' : ''}`}>
+                                        <Badge variant={u.accountStatus === 'active' ? 'default' : 'destructive'} className={${u.accountStatus === 'active' ? 'bg-green-600' : ''}}>
                                             {u.accountStatus}
                                         </Badge>
                                     </div>
@@ -505,7 +548,7 @@ export default function AdminUsersPage() {
                             </TableHeader>
                             <TableBody>
                                 {payoutHistory.map((payout) => (
-                                    <TableRow key={`${selectedUser?.uid}-${payout.id}`}>
+                                    <TableRow key={${selectedUser?.uid}-${payout.id}}>
                                         <TableCell>{payout.processedAt ? new Date(payout.processedAt.seconds * 1000).toLocaleString() : 'N/A'}</TableCell>
                                         <TableCell className="font-semibold">${payout.amount.toFixed(4)}</TableCell>
                                         <TableCell>

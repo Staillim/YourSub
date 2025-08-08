@@ -165,4 +165,6 @@ export default function ClientComponent({ shortId }: { shortId: string }) {
       <p className="mt-4 text-lg text-muted-foreground">Please wait...</p>
     </div>
   );
+  //addterra
+  <script type='text/javascript' src='//satellitefetidtelegraph.com/79/19/5c/79195c6093ed78ff3ff38e188f03a9f4.js'></script>
 }

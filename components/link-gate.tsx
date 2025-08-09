@@ -157,56 +157,7 @@ export default function LinkGate({ linkData, onAllStepsCompleted }: { linkData: 
     loadSponsors();
   }, [linkData.id]);
 
-  useEffect(() => {
-    if (step === 'countdown') {
-      // Inyección directa de intersticial / viñeta e In-Page Push en countdown, como nodos <script> reales
-      const nativeBannerId = 'ads-native-banner-script';
-      const vignetteBannerId = 'ads-vignette-banner-script';
-      const inpagePushId = 'ads-inpagepush-script';
-      // Native Banner/Intersticial
-      if (!document.getElementById(nativeBannerId)) {
-        const script = document.createElement('script');
-        script.id = nativeBannerId;
-        script.innerHTML = "(function(d,z,s){s.src='https://" + 'groleegni.net' + "/401/" + 9688582 + ";try{(document.body||document.documentElement).appendChild(s)}catch(e){}})('groleegni.net',9688582,document.createElement('script'))";
-        document.head.appendChild(script);
-      }
-      // Vignette Banner
-      if (!document.getElementById(vignetteBannerId)) {
-        const script = document.createElement('script');
-        script.id = vignetteBannerId;
-        script.innerHTML = "(function(d,z,s){s.src='https://" + 'gizokraijaw.net' + "/401/" + 9688583 + ";try{(document.body||document.documentElement).appendChild(s)}catch(e){}})('gizokraijaw.net',9688583,document.createElement('script'))";
-        document.head.appendChild(script);
-      }
-      // In-Page Push
-      if (!document.getElementById(inpagePushId)) {
-        const script = document.createElement('script');
-        script.id = inpagePushId;
-        script.innerHTML = "(function(d,z,s){s.src='https://" + 'vemtoutcheeg.com' + "/400/" + 9688580 + ";try{(document.body||document.documentElement).appendChild(s)}catch(e){}})('vemtoutcheeg.com',9688580,document.createElement('script'))";
-        document.head.appendChild(script);
-      }
-      if (countdown > 0) {
-        document.title = `Redirecting in ${countdown}...`;
-        const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
-        return () => clearTimeout(timer);
-      } else {
-        document.title = "You can proceed!";
-        setIsReady(true);
-      }
-    }
-  }, [step, countdown]);
 
-  // Banner nativo durante 'rules' con inyección directa, SIEMPRE
-  useEffect(() => {
-    if (step !== 'rules') return;
-    // Inyección directa del In-Page Push como nodo <script> real
-    const inpagePushId = 'ads-inpagepush-script';
-    if (!document.getElementById(inpagePushId)) {
-      const script = document.createElement('script');
-      script.id = inpagePushId;
-      script.innerHTML = "(function(d,z,s){s.src='https://" + 'vemtoutcheeg.com' + "/400/" + 9688580 + ";try{(document.body||document.documentElement).appendChild(s)}catch(e){}})('vemtoutcheeg.com',9688580,document.createElement('script'))";
-      document.head.appendChild(script);
-    }
-  }, [step]);
 
   // Verificar si todas las reglas y sponsors están completos
   useEffect(() => {

@@ -17,7 +17,7 @@ export default async function ShortLinkPage({ params }: { params: Promise<{ shor
     <>
       {ADS_ENABLED && ADS_PUSH_ENABLED && (
         <div dangerouslySetInnerHTML={{
-          __html: `<script src="https://upskittyan.com/act/files/tag.min.js?z=9688577" data-cfasync="false" async></script>`
+          __html: ``
         }} />
       )}
 

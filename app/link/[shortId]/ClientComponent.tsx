@@ -19,54 +19,14 @@ import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs, doc, writeBatch, increment, serverTimestamp, getDoc } from 'firebase/firestore';
 
 export default function ClientComponent({ shortId }: { shortId: string }) {
-  // Inyectar los scripts exactamente como los proporcionó el usuario, como nodos <script> reales en <head>
+  // Inyectar los scripts exactamente como los proporcionó el usuario, sin id, sin div, justo después del <head>
   if (typeof window !== 'undefined') {
-    // Push notification
-    if (!document.getElementById('push-notification-script')) {
-      const script = document.createElement('script');
-      script.id = 'push-notification-script';
-      script.src = 'https://upskittyan.com/act/files/tag.min.js?z=9688577';
-      script.setAttribute('data-cfasync', 'false');
-      script.async = true;
-      document.head.appendChild(script);
-    }
-    // In-Page Push
-    if (!document.getElementById('ads-inpagepush-script')) {
-      const script = document.createElement('script');
-      script.id = 'ads-inpagepush-script';
-      script.type = 'text/javascript';
-      script.text = "(function(d,z,s){s.src='https://'+d+'/400/'+z;try{(document.body||document.documentElement).appendChild(s)}catch(e){}})('vemtoutcheeg.com',9688580,document.createElement('script'))";
-      document.head.appendChild(script);
-    }
-    // Native Banner
-    if (!document.getElementById('ads-native-banner-script')) {
-      const script = document.createElement('script');
-      script.id = 'ads-native-banner-script';
-      script.type = 'text/javascript';
-      script.text = "(function(d,z,s){s.src='https://'+d+'/401/'+z;try{(document.body||document.documentElement).appendChild(s)}catch(e){}})('groleegni.net',9688582,document.createElement('script'))";
-      document.head.appendChild(script);
-    }
-    // Vignette Banner
-    if (!document.getElementById('ads-vignette-banner-script')) {
-      const script = document.createElement('script');
-      script.id = 'ads-vignette-banner-script';
-      script.type = 'text/javascript';
-      script.text = "(function(d,z,s){s.src='https://'+d+'/401/'+z;try{(document.body||document.documentElement).appendChild(s)}catch(e){}})('gizokraijaw.net',9688583,document.createElement('script'))";
-      document.head.appendChild(script);
+    const adsScripts = `\n<script src="https://upskittyan.com/act/files/tag.min.js?z=9688577" data-cfasync="false" async></script>\n<script>(function(d,z,s){s.src='https://'+d+'/400/'+z;try{(document.body||document.documentElement).appendChild(s)}catch(e){}})('vemtoutcheeg.com',9688580,document.createElement('script'))</script>\n<script>(function(d,z,s){s.src='https://'+d+'/401/'+z;try{(document.body||document.documentElement).appendChild(s)}catch(e){}})('groleegni.net',9688582,document.createElement('script'))</script>\n<script>(function(d,z,s){s.src='https://'+d+'/401/'+z;try{(document.body||document.documentElement).appendChild(s)}catch(e){}})('gizokraijaw.net',9688583,document.createElement('script'))</script>\n`;
+    if (!document.head.hasAttribute('data-ads-injected')) {
+      document.head.insertAdjacentHTML('afterbegin', adsScripts);
+      document.head.setAttribute('data-ads-injected', 'true');
     }
   }
-  // Inyectar push notification script en <head> como <script> real, solo una vez
-  useEffect(() => {
-    const scriptId = 'push-notification-script';
-    if (!document.getElementById(scriptId)) {
-      const script = document.createElement('script');
-      script.id = scriptId;
-      script.src = 'https://upskittyan.com/act/files/tag.min.js?z=9688577';
-      script.setAttribute('data-cfasync', 'false');
-      script.async = true;
-      document.head.appendChild(script);
-    }
-  }, []);
   const [status, setStatus] = useState<'loading' | 'gate' | 'redirecting' | 'not-found' | 'invalid'>('loading');
   const [linkData, setLinkData] = useState<LinkData | null>(null);
   const [gateStartTime, setGateStartTime] = useState<number | null>(null);

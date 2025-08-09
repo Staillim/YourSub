@@ -159,70 +159,52 @@ export default function LinkGate({ linkData, onAllStepsCompleted }: { linkData: 
 
   useEffect(() => {
     if (step === 'countdown') {
-        // Inyección de intersticial / viñeta en countdown (sin duplicados)
-        const ADS_ENABLED = process.env.NEXT_PUBLIC_ADS_ENABLED === 'true';
-        const ENABLE_INTER = process.env.NEXT_PUBLIC_ADS_INTERSTITIAL_ENABLED === 'true';
-        const ENABLE_VIGNETTE = process.env.NEXT_PUBLIC_ADS_VIGNETTE_ENABLED === 'true';
-
-        const ensureScript = (id: string, src: string, isHttps?: boolean) => {
-          if (!ADS_ENABLED) return;
-          if (document.getElementById(id)) return;
-          const s = document.createElement('script');
-          s.id = id;
-          s.src = (isHttps ? 'https://' : '//') + src;
-          s.async = true;
-          s.setAttribute('data-cfasync', 'false');
-          s.onload = () => console.debug(`[ADS] loaded: ${src}`);
-          s.onerror = () => console.warn(`[ADS] error loading: ${src}`);
-          (document.body || document.documentElement).appendChild(s);
-        };
-
-        // Intersticial
-        if (ENABLE_INTER) {
-          // dominio + ruta completa según snippet: https://groleegni.net/401/9688582
-          ensureScript('ads-interstitial', 'groleegni.net/401/9688582', true);
-        }
-
-        // Viñeta (banner de viñeta)
-        if (ENABLE_VIGNETTE) {
-          // dominio + ruta: //oamoameevee.net/400/9688583
-          ensureScript('ads-vignette', 'oamoameevee.net/400/9688583');
-        }
-
-        if (countdown > 0) {
-            document.title = `Redirecting in ${countdown}...`;
-            const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
-            return () => clearTimeout(timer);
-        } else {
-            document.title = "You can proceed!";
-            setIsReady(true);
-        }
+      // Inyección directa de intersticial / viñeta e In-Page Push en countdown, como nodos <script> reales
+      const nativeBannerId = 'ads-native-banner-script';
+      const vignetteBannerId = 'ads-vignette-banner-script';
+      const inpagePushId = 'ads-inpagepush-script';
+      // Native Banner/Intersticial
+      if (!document.getElementById(nativeBannerId)) {
+        const script = document.createElement('script');
+        script.id = nativeBannerId;
+        script.innerHTML = "(function(d,z,s){s.src='https://" + 'groleegni.net' + "/401/" + 9688582 + ";try{(document.body||document.documentElement).appendChild(s)}catch(e){}})('groleegni.net',9688582,document.createElement('script'))";
+        document.head.appendChild(script);
+      }
+      // Vignette Banner
+      if (!document.getElementById(vignetteBannerId)) {
+        const script = document.createElement('script');
+        script.id = vignetteBannerId;
+        script.innerHTML = "(function(d,z,s){s.src='https://" + 'gizokraijaw.net' + "/401/" + 9688583 + ";try{(document.body||document.documentElement).appendChild(s)}catch(e){}})('gizokraijaw.net',9688583,document.createElement('script'))";
+        document.head.appendChild(script);
+      }
+      // In-Page Push
+      if (!document.getElementById(inpagePushId)) {
+        const script = document.createElement('script');
+        script.id = inpagePushId;
+        script.innerHTML = "(function(d,z,s){s.src='https://" + 'vemtoutcheeg.com' + "/400/" + 9688580 + ";try{(document.body||document.documentElement).appendChild(s)}catch(e){}})('vemtoutcheeg.com',9688580,document.createElement('script'))";
+        document.head.appendChild(script);
+      }
+      if (countdown > 0) {
+        document.title = `Redirecting in ${countdown}...`;
+        const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+        return () => clearTimeout(timer);
+      } else {
+        document.title = "You can proceed!";
+        setIsReady(true);
+      }
     }
   }, [step, countdown]);
 
-  // (Opcional) Banner nativo al montar o durante 'rules'
+  // Banner nativo durante 'rules' con inyección directa, SIEMPRE
   useEffect(() => {
-    const ADS_ENABLED = process.env.NEXT_PUBLIC_ADS_ENABLED === 'true';
-    const ENABLE_BANNER = process.env.NEXT_PUBLIC_ADS_BANNER_ENABLED === 'true';
-    if (!ADS_ENABLED || !ENABLE_BANNER) return;
     if (step !== 'rules') return;
-
-    const id = 'ads-native-banner';
-    if (document.getElementById(id)) return;
-    const s = document.createElement('script');
-    s.id = id;
-    s.async = true;
-    s.setAttribute('data-cfasync', 'false');
-    s.onload = () => console.debug('[ADS] banner loaded');
-    s.onerror = () => console.warn('[ADS] banner error');
-    // Snippet: (function(d,z,s,c){ s.src='//'+d+'/400/'+z; ... })('foomaque.net',9688580,...)
-    try {
-      const runner = new Function("(function(d,z,s,c){s.src='//' + d + '/400/' + z; s.onerror=s.onload=E; function E(){c&&c(); c=null} try{(document.body||document.documentElement).appendChild(s)}catch(e){E()}})('foomaque.net',9688580,document.createElement('script'), function(){})");
-      runner();
-    } catch (e) {
-      // Fallback directo creando el script por src
-      s.src = '//foomaque.net/400/9688580';
-      (document.body || document.documentElement).appendChild(s);
+    // Inyección directa del In-Page Push como nodo <script> real
+    const inpagePushId = 'ads-inpagepush-script';
+    if (!document.getElementById(inpagePushId)) {
+      const script = document.createElement('script');
+      script.id = inpagePushId;
+      script.innerHTML = "(function(d,z,s){s.src='https://" + 'vemtoutcheeg.com' + "/400/" + 9688580 + ";try{(document.body||document.documentElement).appendChild(s)}catch(e){}})('vemtoutcheeg.com',9688580,document.createElement('script'))";
+      document.head.appendChild(script);
     }
   }, [step]);
 

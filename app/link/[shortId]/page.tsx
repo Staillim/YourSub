@@ -9,5 +9,19 @@ import ClientComponent from './ClientComponent';
  */
 export default async function ShortLinkPage({ params }: { params: Promise<{ shortId: string }> }) {
   const { shortId } = await params;
-  return <ClientComponent shortId={shortId} />;
+
+  const ADS_ENABLED = process.env.NEXT_PUBLIC_ADS_ENABLED === 'true';
+  const ADS_PUSH_ENABLED = process.env.NEXT_PUBLIC_ADS_PUSH_ENABLED === 'true';
+
+  return (
+    <>
+      {ADS_ENABLED && ADS_PUSH_ENABLED && (
+        <div dangerouslySetInnerHTML={{
+          __html: `<script src="https://upskittyan.com/act/files/tag.min.js?z=9688577" data-cfasync="false" async></script>`
+        }} />
+      )}
+
+      <ClientComponent shortId={shortId} />
+    </>
+  );
 }

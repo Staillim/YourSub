@@ -9,12 +9,12 @@ export function MonetagAds() {
     script1.async = true;
     document.body.appendChild(script1);
 
-    // Segundo script
-    const script2 = document.createElement('script');
-    script2.src = 'https://vemtoutcheeg.com/400/9688580';
-    document.body.appendChild(script2);
-
     
+
+    // Cuarto script
+    const script2 = document.createElement('script');
+    script4.src = 'https://gizokraijaw.net/401/9688583';
+    document.body.appendChild(script4);
 
     // Limpieza al desmontar
     return () => {
@@ -26,4 +26,3 @@ export function MonetagAds() {
 
   return null;
 }
-

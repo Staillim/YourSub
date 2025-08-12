@@ -14,24 +14,16 @@ export function MonetagAds() {
     script2.src = 'https://vemtoutcheeg.com/400/9688580';
     document.body.appendChild(script2);
 
-    // Tercer script
-    const script3 = document.createElement('script');
-    script3.src = 'https://groleegni.net/401/9688582';
-    document.body.appendChild(script3);
-
-    // Cuarto script
-    const script4 = document.createElement('script');
-    script4.src = 'https://gizokraijaw.net/401/9688583';
-    document.body.appendChild(script4);
+    
 
     // Limpieza al desmontar
     return () => {
       document.body.removeChild(script1);
       document.body.removeChild(script2);
-      document.body.removeChild(script3);
-      document.body.removeChild(script4);
+      
     };
   }, []);
 
   return null;
 }
+

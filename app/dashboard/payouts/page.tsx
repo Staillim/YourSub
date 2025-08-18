@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -17,7 +16,7 @@ import { Loader2, DollarSign, Wallet, PiggyBank } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 
-const MIN_PAYOUT_AMOUNT = 10;
+const MIN_PAYOUT_AMOUNT = 20;
 
 export default function PayoutsPage() {
     const { user, profile, loading, payouts, payoutsPending, paidEarnings, availableBalance } = useUser();
@@ -99,8 +98,13 @@ export default function PayoutsPage() {
             <div className="flex items-center justify-between">
                 <h1 className="text-lg font-semibold md:text-2xl">Payouts</h1>
             </div>
+            
+            {/* Mensaje informativo sobre los pagos */}
+            <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-4 mb-4 rounded">
+                <strong className="text-green-600">Importante:</strong> Debido al creciente avance de la plataforma en cuanto a solicitudes, puedes solicitar tus pagos cada 15 días, especialmente los días <b className="text-green-600">1-5</b> y del <b className="text-green-600">15-20</b>. El mínimo de retiro se actualizó a <b className="text-green-600">$20</b>.
+            </div>
 
-             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Available Balance</CardTitle>
